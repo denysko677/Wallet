@@ -1,49 +1,28 @@
-class Wallet:
-    def __init__(self):
-        self.balance = 0
+import pytest
+from wallet import Wallet
 
-    def add_money(self, amount):
-        if amount > 0:
-            self.balance += amount
-            print(f"Додано {amount} грошей. Загальний баланс: {self.balance}")
-        else:
-            print("Введіть коректну суму для додавання.")
+@pytest.fixture
+def wallet():
+    return Wallet()
 
-    def spend_money(self, amount):
-        if 0 < amount <= self.balance:
-            self.balance -= amount
-            print(f"Витрачено {amount} грошей. Залишок: {self.balance}")
-        else:
-            print("Недостатньо грошей на рахунку.")
+def test_initial_balance(wallet):
+    assert wallet.balance == 0
 
-    def check_balance(self):
-        print(f"Поточний баланс: {self.balance}")
+def test_add_money(wallet):
+    wallet.add_money(100)
+    assert wallet.balance == 100
 
+def test_spend_money(wallet):
+    wallet.add_money(100)
+    wallet.spend_money(30)
+    assert wallet.balance == 70
 
-def main():
-    wallet = Wallet()
-    while True:
-        print("\nМеню:")
-        print("1. Додати гроші")
-        print("2. Витратити гроші")
-        print("3. Перевірити баланс")
-        print("4. Вийти")
-        choice = input("Виберіть опцію: ")
+def test_add_negative_money(wallet, capsys):
+    wallet.add_money(-50)
+    captured = capsys.readouterr()
+    assert "Введіть коректну суму для додавання." in captured.out
 
-        if choice == '1':
-            amount = float(input("Введіть суму, яку ви хочете додати: "))
-            wallet.add_money(amount)
-        elif choice == '2':
-            amount = float(input("Введіть суму, яку ви хочете витратити: "))
-            wallet.spend_money(amount)
-        elif choice == '3':
-            wallet.check_balance()
-        elif choice == '4':
-            print("Дякую за використання! До побачення!")
-            break
-        else:
-            print("Некоректний вибір. Будь ласка, виберіть опцію зі списку.")
-
-
-if __name__ == "__main__":
-    main()
+def test_spend_more_than_balance(wallet, capsys):
+    wallet.spend_money(100)
+    captured = capsys.readouterr()
+    assert "Недостатньо грошей на рахунку." in captured.out
